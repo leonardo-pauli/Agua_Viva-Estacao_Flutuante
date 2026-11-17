@@ -1,11 +1,11 @@
 {
-    "name": "Água Viva - Monitoramento",
+    "name": "Água Viva Estação Flutuante",
     "short_name": "Água Viva",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#44167A",
     "theme_color": "#5E289E",
-    "description": "Água Viva - Monitoramento Multiparamétrico de Qualidade da Água.",
+    "description": "Água Viva Multiparamétrico de Qualidade da Água.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

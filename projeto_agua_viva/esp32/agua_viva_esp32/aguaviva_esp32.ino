@@ -27,8 +27,8 @@ const int SD_MOSI = 23;
 const uint32_t SD_FREQ_HZ = 4000000; // 4 MHz
 
 // Rede Local (Access Point) - ws://192.168.4.1:81
-const char *ssid = "Bioglow_Boia";
-const char *password = "bioglowadmin"; // mínimo 8 caracteres
+const char *ssid = "AguaViva";
+const char *password = "focaboia"; // mínimo 8 caracteres
 
 WebSocketsServer webSocket = WebSocketsServer(81);
 
@@ -198,7 +198,8 @@ bool iniciarSD() {
   pinMode(SD_MISO, INPUT_PULLUP); // Estabiliza linha DO/MISO na protoboard
   SPI.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
 
-  // Tenta iniciar em 4 MHz; se houver ruído nos fios, faz fallback para 1 MHz e 400 kHz
+  // Tenta iniciar em 4 MHz; se houver ruído nos fios, faz fallback para 1 MHz e
+  // 400 kHz
   if (!SD.begin(SD_CS, SPI, SD_FREQ_HZ)) {
     SD.end();
     delay(50);
@@ -216,7 +217,8 @@ bool iniciarSD() {
     return false;
   }
 
-  // Verifica se existe um /bioglow_log.csv antigo do circuito Piezo (5 colunas: rms;pico)
+  // Verifica se existe um /bioglow_log.csv antigo do circuito Piezo (5 colunas:
+  // rms;pico)
   if (SD.exists(ARQUIVO_LOG)) {
     File fCheck = SD.open(ARQUIVO_LOG, FILE_READ);
     if (fCheck) {
@@ -865,11 +867,10 @@ void loop() {
              "\"turb\":%s"
              "}",
              ESTACAO_ID, STATUS_CALIBRACAO ? "true" : "false",
-             sdOk ? "true" : "false",
-             (long long)(agora / 1000), dataTexto, horaTexto, strTemp,
-             tempSensorOK ? "OK" : "ERRO_DESCONECTADO", strPH, voltagemPH,
-             statusPH, strTDS, strEC, statusTDS, strNTU, voltagemTurb,
-             statusTurb, strPH, strTemp, strEC, strNTU);
+             sdOk ? "true" : "false", (long long)(agora / 1000), dataTexto,
+             horaTexto, strTemp, tempSensorOK ? "OK" : "ERRO_DESCONECTADO",
+             strPH, voltagemPH, statusPH, strTDS, strEC, statusTDS, strNTU,
+             voltagemTurb, statusTurb, strPH, strTemp, strEC, strNTU);
 
     // Imprime o JSON no Monitor Serial
     Serial.println(ultimoJson);

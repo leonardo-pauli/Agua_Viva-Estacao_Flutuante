@@ -139,7 +139,7 @@ class _AusenciaMonitorState extends State<AusenciaMonitor>
               'tentar novamente?'
           : 'Você ficou $tempoFora fora do app. Durante esse período a boia '
               'continuou gravando no cartão SD, mas não foi possível conectar '
-              'a ela agora.\n\nConecte-se à rede "Bioglow_Boia" e abra o '
+              'a ela agora.\n\nConecte-se à rede "AguaViva" e abra o '
               'relatório.';
     } else if (!resumo.sdOk) {
       icone = Icons.sd_card_alert_outlined;

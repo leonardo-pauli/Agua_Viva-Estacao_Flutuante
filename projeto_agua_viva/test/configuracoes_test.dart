@@ -120,6 +120,33 @@ void main() {
       await repo.limpar();
       expect(repo.carregar().host, Configuracoes.hostPadrao);
     });
+
+    test('funciona em memoria quando SharedPreferences e nulo (fallback)', () async {
+      final repo = ConfiguracoesRepository(null);
+
+      expect(repo.tutorialConcluido, false);
+      expect(repo.carregar().host, Configuracoes.hostPadrao);
+
+      await repo.marcarTutorialConcluido();
+      expect(repo.tutorialConcluido, true);
+
+      const nova = Configuracoes(host: '192.168.4.20', porta: 8081);
+      await repo.salvar(nova);
+      expect(repo.carregar().host, '192.168.4.20');
+      expect(repo.carregar().porta, 8081);
+
+      await repo.limpar();
+      expect(repo.carregar().host, Configuracoes.hostPadrao);
+    });
+
+    test('inicializarSeguro retorna repositorio em memoria se o loader falhar', () async {
+      final repo = await ConfiguracoesRepository.inicializarSeguro(
+        carregador: () async => throw Exception('Falha JNI SharedPreferences'),
+      );
+
+      expect(repo.carregar().host, Configuracoes.hostPadrao);
+      expect(repo.tutorialConcluido, false);
+    });
   });
 
   group('ConfiguracoesCubit', () {

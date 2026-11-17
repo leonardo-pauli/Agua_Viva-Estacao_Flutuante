@@ -23,10 +23,8 @@ Future<void> mostrarDialogoFaixaSensor(
 
   final novaFaixa = await showDialog<FaixaIdealSensor>(
     context: context,
-    builder: (_) => _DialogoFaixaUnicoSensor(
-      sensor: sensor,
-      faixaInicial: faixaAtual,
-    ),
+    builder: (_) =>
+        _DialogoFaixaUnicoSensor(sensor: sensor, faixaInicial: faixaAtual),
   );
 
   if (novaFaixa == null || !context.mounted) return;
@@ -62,11 +60,7 @@ Future<void> mostrarEscolhaInicialFaixas(BuildContext context) async {
       final cores = CoresBioglow.of(ctx);
 
       return AlertDialog(
-        icon: Icon(
-          Icons.tune_rounded,
-          size: 30,
-          color: scheme.primary,
-        ),
+        icon: Icon(Icons.tune_rounded, size: 30, color: scheme.primary),
         title: const Text(
           'Faixas Ideais dos Sensores',
           textAlign: TextAlign.center,
@@ -80,12 +74,12 @@ Future<void> mostrarEscolhaInicialFaixas(BuildContext context) async {
               children: [
                 Text(
                   'Você pode definir o valor mínimo e máximo ideal de cada '
-                  'sensor para o seu estudo, ou começar com os valores comuns '
+                  'sensor para sua análise, ou começar com os valores comuns '
                   'de referência:',
                   style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                        height: 1.4,
-                      ),
+                    color: scheme.onSurfaceVariant,
+                    height: 1.4,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 for (final s in TipoSensor.values)
@@ -141,7 +135,9 @@ Future<void> mostrarEscolhaInicialFaixas(BuildContext context) async {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: scheme.surfaceContainerHighest.withValues(alpha: 0.45),
+                    color: scheme.surfaceContainerHighest.withValues(
+                      alpha: 0.45,
+                    ),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -252,18 +248,15 @@ class _CamposMinMaxFaixa extends StatelessWidget {
             contentPadding: paddingCampo,
           ),
           onChanged: onChanged != null ? (_) => onChanged!() : null,
-          onFieldSubmitted:
-              onSubmittedMax != null ? (_) => onSubmittedMax!() : null,
+          onFieldSubmitted: onSubmittedMax != null
+              ? (_) => onSubmittedMax!()
+              : null,
         );
 
         if (empilharVerticalmente) {
           return Column(
             mainAxisSize: MainAxisSize.min,
-            children: [
-              campoMin,
-              const SizedBox(height: 10),
-              campoMax,
-            ],
+            children: [campoMin, const SizedBox(height: 10), campoMax],
           );
         }
 
@@ -404,9 +397,9 @@ class _DialogoFaixaUnicoSensorState extends State<_DialogoFaixaUnicoSensor> {
                       'Padrão comum: ${s.formatarValor(s.idealMin)} – '
                       '${s.formatarValor(s.idealMax)} ${s.unidade}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
@@ -606,8 +599,9 @@ class _DialogoTodasFaixasSensoresState
                             setState(() => _erros.remove(s));
                           }
                         },
-                        onSubmittedMax:
-                            s == TipoSensor.values.last ? _salvar : null,
+                        onSubmittedMax: s == TipoSensor.values.last
+                            ? _salvar
+                            : null,
                       ),
                       if (erro != null) ...[
                         const SizedBox(height: 8),

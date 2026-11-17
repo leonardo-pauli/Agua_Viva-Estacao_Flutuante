@@ -145,7 +145,7 @@ class _RelatorioScreenState extends State<RelatorioScreen> {
     if (!conectou) {
       erro =
           'Não foi possível conectar à boia.\n'
-          'Conecte-se à rede Wi-Fi "Bioglow_Boia" e tente novamente.';
+          'Conecte-se à rede Wi-Fi "AguaViva" e tente novamente.';
     } else {
       resultado = await service.baixarHistorico(
         _inicioDoPeriodo(),

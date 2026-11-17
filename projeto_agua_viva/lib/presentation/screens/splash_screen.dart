@@ -64,7 +64,7 @@ class _SplashScreenState extends State<SplashScreen>
   String _etapaTexto(double valor) {
     if (valor < 0.38) return 'Inicializando módulos de sensores...';
     if (valor < 0.78) return 'Preparando telemetria Wi-Fi e Cartão SD...';
-    return 'Iniciando Água Viva - Monitoramento...';
+    return 'Iniciando Água Viva...';
   }
 
   @override
@@ -81,11 +81,7 @@ class _SplashScreenState extends State<SplashScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF1A0B2E),
-              Color(0xFF0E131F),
-              Color(0xFF090D16),
-            ],
+            colors: [Color(0xFF1A0B2E), Color(0xFF0E131F), Color(0xFF090D16)],
           ),
         ),
         child: SafeArea(
@@ -149,7 +145,7 @@ class _SplashScreenState extends State<SplashScreen>
                       SizedBox(height: resp.espaco(26)),
                       // Nome do App
                       const Text(
-                        'Água Viva - Monitoramento',
+                        'Água Viva',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 28,
@@ -160,7 +156,7 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Estação de Monitoramento da Qualidade da Água',
+                        'Estação Flutuante de Triagem Físico-Química da Água',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14.5,
@@ -179,8 +175,9 @@ class _SplashScreenState extends State<SplashScreen>
                               child: LinearProgressIndicator(
                                 value: _progresso.value,
                                 minHeight: resp.isTablet ? 10 : 8,
-                                backgroundColor:
-                                    Colors.white.withValues(alpha: 0.12),
+                                backgroundColor: Colors.white.withValues(
+                                  alpha: 0.12,
+                                ),
                                 valueColor: const AlwaysStoppedAnimation<Color>(
                                   _roxoAcento,
                                 ),
@@ -197,8 +194,9 @@ class _SplashScreenState extends State<SplashScreen>
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontSize: 13,
-                                      color:
-                                          Colors.white.withValues(alpha: 0.68),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.68,
+                                      ),
                                     ),
                                   ),
                                 ),

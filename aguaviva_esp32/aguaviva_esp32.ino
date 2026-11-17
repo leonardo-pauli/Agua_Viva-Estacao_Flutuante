@@ -27,8 +27,8 @@ const int SD_MOSI = 23;
 const uint32_t SD_FREQ_HZ = 4000000; // 4 MHz
 
 // Rede Local (Access Point) - ws://192.168.4.1:81
-const char *ssid = "Bioglow_Boia";
-const char *password = "bioglowadmin"; // mínimo 8 caracteres
+const char *ssid = "AguaViva";
+const char *password = "focaboia"; // mínimo 8 caracteres
 
 WebSocketsServer webSocket = WebSocketsServer(81);
 
@@ -142,9 +142,15 @@ int getMedianNum(int bArray[], int iFilterLen) {
 }
 
 // Leitura de Voltagem Real Compensada pelo eFuse do ESP32 (em Volts)
+// Usa mediana de 15 amostras para eliminar picos de ruído do ADC/Wi-Fi
 float lerVoltagemCalibrada(int pino) {
-  uint32_t mv = analogReadMilliVolts(pino);
-  return (float)mv / 1000.0f;
+  const int N_AMOSTRAS = 15;
+  int amostras[N_AMOSTRAS];
+  for (int i = 0; i < N_AMOSTRAS; i++) {
+    amostras[i] = analogReadMilliVolts(pino);
+  }
+  int medianaMv = getMedianNum(amostras, N_AMOSTRAS);
+  return (float)medianaMv / 1000.0f;
 }
 
 // Formata float ou retorna "null" caso seja NAN
@@ -187,16 +193,46 @@ void formatarDataHora(int64_t epochMs, char *data, size_t tamData, char *hora,
 bool iniciarSD() {
   SD.end();
   delay(50);
+  pinMode(SD_CS, OUTPUT);
+  digitalWrite(SD_CS, HIGH);
+  pinMode(SD_MISO, INPUT_PULLUP); // Estabiliza linha DO/MISO na protoboard
   SPI.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
-  if (!SD.begin(SD_CS, SPI, 1000000)) {
-    return false;
+
+  // Tenta iniciar em 4 MHz; se houver ruído nos fios, faz fallback para 1 MHz e
+  // 400 kHz
+  if (!SD.begin(SD_CS, SPI, SD_FREQ_HZ)) {
+    SD.end();
+    delay(50);
+    if (!SD.begin(SD_CS, SPI, 1000000)) {
+      SD.end();
+      delay(50);
+      if (!SD.begin(SD_CS, SPI, 400000)) {
+        return false;
+      }
+    }
   }
+
   if (SD.cardType() == CARD_NONE) {
     SD.end();
     return false;
   }
-  if (!SD.begin(SD_CS, SPI, SD_FREQ_HZ)) {
-    return false;
+
+  // Verifica se existe um /bioglow_log.csv antigo do circuito Piezo (5 colunas:
+  // rms;pico)
+  if (SD.exists(ARQUIVO_LOG)) {
+    File fCheck = SD.open(ARQUIVO_LOG, FILE_READ);
+    if (fCheck) {
+      char cabecalho[96] = {0};
+      size_t n = fCheck.readBytesUntil('\n', cabecalho, sizeof(cabecalho) - 1);
+      cabecalho[n] = '\0';
+      fCheck.close();
+      if (strstr(cabecalho, "rms;pico") != NULL) {
+        SD.remove("/bioglow_log_piezo_bkp.csv");
+        if (!SD.rename(ARQUIVO_LOG, "/bioglow_log_piezo_bkp.csv")) {
+          SD.remove(ARQUIVO_LOG);
+        }
+      }
+    }
   }
 
   if (!SD.exists(ARQUIVO_LOG)) {
@@ -715,9 +751,12 @@ void loop() {
     float valorPH = NAN;
     const char *statusPH = "OK";
 
-    if (voltagemPH < 0.05f || voltagemPH > 3.25f) {
+    if (voltagemPH < 0.02f) {
       statusPH = "ERRO_VOLTAGEM_OUT_OF_RANGE";
     } else {
+      if (voltagemPH > 3.25f) {
+        statusPH = "ALERTA_TENSAO_ALTA_CALIBRAR";
+      }
       valorPH = phNeutro - ((voltagemPH - voltagemNeutroPH) / sensibilidadePH);
       if (valorPH < 0.0f)
         valorPH = 0.0f;
@@ -807,6 +846,7 @@ void loop() {
              "\"tipo\":\"leitura\","
              "\"estacao\":\"%s\","
              "\"calibrado\":%s,"
+             "\"sd\":%s,"
              "\"ts\":%lld,"
              "\"data\":\"%s\","
              "\"hora\":\"%s\","
@@ -827,10 +867,10 @@ void loop() {
              "\"turb\":%s"
              "}",
              ESTACAO_ID, STATUS_CALIBRACAO ? "true" : "false",
-             (long long)(agora / 1000), dataTexto, horaTexto, strTemp,
-             tempSensorOK ? "OK" : "ERRO_DESCONECTADO", strPH, voltagemPH,
-             statusPH, strTDS, strEC, statusTDS, strNTU, voltagemTurb,
-             statusTurb, strPH, strTemp, strEC, strNTU);
+             sdOk ? "true" : "false", (long long)(agora / 1000), dataTexto,
+             horaTexto, strTemp, tempSensorOK ? "OK" : "ERRO_DESCONECTADO",
+             strPH, voltagemPH, statusPH, strTDS, strEC, statusTDS, strNTU,
+             voltagemTurb, statusTurb, strPH, strTemp, strEC, strNTU);
 
     // Imprime o JSON no Monitor Serial
     Serial.println(ultimoJson);

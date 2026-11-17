@@ -16,10 +16,13 @@ class ConfiguracoesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ConfiguracoesCubit>();
+    final scheme = Theme.of(context).colorScheme;
+    final cores = CoresBioglow.of(context);
+    final resp = Responsivo.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: Responsivo.of(context).alturaAppBar,
+        toolbarHeight: resp.alturaAppBar,
         title: const Row(
           children: [
             IconePng(IconesApp.settings, size: 20),
@@ -44,236 +47,461 @@ class ConfiguracoesScreen extends StatelessWidget {
       ),
       body: BlocBuilder<ConfiguracoesCubit, Configuracoes>(
         builder: (context, c) => ListView(
-          padding: Responsivo.of(context).paddingLista(topo: 4, base: 24),
+          padding: resp.paddingLista(topo: 12, base: 32),
           children: [
             // ---------------------------------------------------------
-            const _Secao('Conexão com a boia'),
-            const _TileStatusConexao(),
-            ListTile(
-              leading: const Icon(Icons.router_outlined),
-              title: const Text('Endereço da boia'),
-              subtitle: Text(c.url),
-              trailing: const Icon(Icons.edit_outlined),
-              onTap: () => _editarEndereco(context, c),
+            // 1. Conexão com a boia
+            // ---------------------------------------------------------
+            const _Secao(
+              titulo: 'Conexão com a boia',
+              icone: Icons.wifi_tethering_rounded,
             ),
-            SwitchListTile(
-              secondary: const Icon(Icons.battery_saver_outlined),
-              title: const Text('Manter conexão em segundo plano'),
-              subtitle: Text(
-                c.manterConexaoEmSegundoPlano
-                    ? 'Recebe leituras com o app minimizado (gasta mais bateria)'
-                    : 'Desconecta após 30 s fora do app para poupar bateria',
-              ),
-              value: c.manterConexaoEmSegundoPlano,
-              onChanged: cubit.definirManterConexao,
+            _CardConfiguracao(
+              children: [
+                const _TileStatusConexao(),
+                const _DivisorCard(),
+                ListTile(
+                  leading: _IconeConfiguracao(
+                    icone: Icons.router_outlined,
+                    cor: scheme.primary,
+                  ),
+                  title: const Text(
+                    'Endereço da boia',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    c.url,
+                    style: TextStyle(color: scheme.onSurfaceVariant),
+                  ),
+                  trailing: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: scheme.surfaceContainerHighest.withValues(
+                        alpha: 0.45,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.edit_outlined,
+                      size: 18,
+                      color: scheme.primary,
+                    ),
+                  ),
+                  onTap: () => _editarEndereco(context, c),
+                ),
+                const _DivisorCard(),
+                SwitchListTile(
+                  secondary: _IconeConfiguracao(
+                    icone: Icons.battery_saver_outlined,
+                    cor: scheme.secondary,
+                  ),
+                  title: const Text(
+                    'Manter conexão em segundo plano',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    c.manterConexaoEmSegundoPlano
+                        ? 'Recebe leituras com o app minimizado (gasta mais bateria)'
+                        : 'Desconecta após 30 s fora do app para poupar bateria',
+                  ),
+                  value: c.manterConexaoEmSegundoPlano,
+                  onChanged: cubit.definirManterConexao,
+                ),
+              ],
             ),
 
             // ---------------------------------------------------------
-            const _Secao('Ao vivo'),
-            _ListTileOpcoes<int>(
-              icone: Icons.timeline,
-              assetIconePng: IconesApp.sliders,
-              titulo: 'Janela do gráfico',
-              descricao: 'Quanto tempo de leituras fica visível',
-              valor: c.janelaAoVivoMin,
-              opcoes: Configuracoes.opcoesJanelaMin,
-              rotulo: (v) => '$v min',
-              onChanged: cubit.definirJanelaAoVivo,
+            // 2. Ao vivo
+            // ---------------------------------------------------------
+            const _Secao(
+              titulo: 'Ao vivo',
+              icone: Icons.show_chart_rounded,
+            ),
+            _CardConfiguracao(
+              children: [
+                _ListTileOpcoes<int>(
+                  icone: Icons.timeline,
+                  assetIconePng: IconesApp.sliders,
+                  cor: scheme.primary,
+                  titulo: 'Janela do gráfico',
+                  descricao: 'Quanto tempo de leituras fica visível',
+                  valor: c.janelaAoVivoMin,
+                  opcoes: Configuracoes.opcoesJanelaMin,
+                  rotulo: (v) => '$v min',
+                  onChanged: cubit.definirJanelaAoVivo,
+                ),
+              ],
             ),
 
             // ---------------------------------------------------------
-            const _Secao('Relatório do cartão SD'),
-            _ListTileOpcoes<int>(
-              icone: Icons.scatter_plot_outlined,
-              assetIconePng: IconesApp.chart,
-              titulo: 'Pontos no gráfico',
-              descricao: 'Mais pontos = mais detalhe, download mais lento',
-              valor: c.maxPontosRelatorio,
-              opcoes: Configuracoes.opcoesPontosRelatorio,
-              rotulo: (v) => '$v',
-              onChanged: cubit.definirMaxPontosRelatorio,
+            // 3. Relatório do cartão SD
+            // ---------------------------------------------------------
+            const _Secao(
+              titulo: 'Relatório do cartão SD',
+              icone: Icons.sd_card_outlined,
             ),
-            SwitchListTile(
-              secondary: const Icon(Icons.notifications_active_outlined),
-              title: const Text('Avisar ao voltar ao app'),
-              subtitle: const Text(
-                'Mostra quantos dados a boia gravou enquanto você esteve fora',
-              ),
-              value: c.avisoAusencia,
-              onChanged: cubit.definirAvisoAusencia,
-            ),
-            _ListTileOpcoes<int>(
-              icone: Icons.timer_outlined,
-              titulo: 'Tempo fora para avisar',
-              valor: c.limiteAusenciaMin,
-              opcoes: Configuracoes.opcoesAusenciaMin,
-              rotulo: (v) => v >= 60 ? '${v ~/ 60} h' : '$v min',
-              onChanged: c.avisoAusencia ? cubit.definirLimiteAusencia : null,
+            _CardConfiguracao(
+              children: [
+                _ListTileOpcoes<int>(
+                  icone: Icons.scatter_plot_outlined,
+                  assetIconePng: IconesApp.chart,
+                  cor: scheme.primary,
+                  titulo: 'Pontos no gráfico',
+                  descricao: 'Mais pontos = mais detalhe, download mais lento',
+                  valor: c.maxPontosRelatorio,
+                  opcoes: Configuracoes.opcoesPontosRelatorio,
+                  rotulo: (v) => '$v',
+                  onChanged: cubit.definirMaxPontosRelatorio,
+                ),
+                const _DivisorCard(),
+                SwitchListTile(
+                  secondary: _IconeConfiguracao(
+                    icone: Icons.notifications_active_outlined,
+                    cor: cores.alerta,
+                  ),
+                  title: const Text(
+                    'Avisar ao voltar ao app',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: const Text(
+                    'Mostra quantos dados a boia gravou enquanto você esteve fora',
+                  ),
+                  value: c.avisoAusencia,
+                  onChanged: cubit.definirAvisoAusencia,
+                ),
+                const _DivisorCard(),
+                _ListTileOpcoes<int>(
+                  icone: Icons.timer_outlined,
+                  cor: scheme.secondary,
+                  titulo: 'Tempo fora para avisar',
+                  valor: c.limiteAusenciaMin,
+                  opcoes: Configuracoes.opcoesAusenciaMin,
+                  rotulo: (v) => v >= 60 ? '${v ~/ 60} h' : '$v min',
+                  onChanged:
+                      c.avisoAusencia ? cubit.definirLimiteAusencia : null,
+                ),
+              ],
             ),
 
             // ---------------------------------------------------------
-            const _Secao('Aparência'),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+            // 4. Aparência
+            // ---------------------------------------------------------
+            const _Secao(
+              titulo: 'Aparência',
+              icone: Icons.palette_outlined,
+            ),
+            _CardConfiguracao(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.brightness_6_outlined,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        'Tema',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _SeletorTemaCards(
-                    temaAtual: c.tema,
-                    onChanged: cubit.definirTema,
-                  ),
-                ],
-              ),
-            ),
-            SwitchListTile(
-              secondary: const Icon(Icons.accessibility_new_rounded),
-              title: const Text('Modo Acessibilidade (Fontes Grandes)'),
-              subtitle: Text(
-                c.modoAcessibilidade
-                    ? 'Fontes ampliadas ativas para melhor visualização'
-                    : 'Amplia todas as fontes do app para facilitar a leitura',
-              ),
-              value: c.modoAcessibilidade,
-              onChanged: cubit.definirModoAcessibilidade,
-            ),
-            SwitchListTile(
-              secondary: const IconePng(IconesApp.sliders, size: 22),
-              title: const Text('Escala automática nos gráficos'),
-              subtitle: Text(
-                c.escalaAutomatica
-                    ? 'Eixo vertical ajustado aos valores medidos'
-                    : 'Eixo vertical fixo na escala total de cada sensor',
-              ),
-              value: c.escalaAutomatica,
-              onChanged: cubit.definirEscalaAutomatica,
-            ),
-
-            // ---------------------------------------------------------
-            const _Secao('Faixas Ideais e Sensores da Boia'),
-            ListTile(
-              leading: Icon(
-                Icons.tune_rounded,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              title: const Text('Definir todas as faixas ideais'),
-              subtitle: Text(
-                c.possuiAlgumaFaixaPersonalizada
-                    ? 'Alguns sensores usam valores personalizados pelo usuário'
-                    : 'Configurar valor mínimo e máximo ideal dos 4 sensores',
-              ),
-              trailing: c.possuiAlgumaFaixaPersonalizada
-                  ? TextButton(
-                      onPressed: () async {
-                        await cubit.restaurarTodasFaixasPadrao();
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Faixas dos sensores restauradas para os valores comuns.',
+                      Row(
+                        children: [
+                          _IconeConfiguracao(
+                            icone: Icons.brightness_6_outlined,
+                            cor: scheme.primary,
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Tema do aplicativo',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                                Text(
+                                  'Escolha entre claro para sol intenso ou escuro',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: scheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
                             ),
                           ),
-                        );
-                      },
-                      child: const Text('Usar comuns'),
-                    )
-                  : const Icon(Icons.edit_outlined),
-              onTap: () => mostrarDialogoTodasFaixasSensores(context),
-            ),
-            for (final s in TipoSensor.values)
-              ListTile(
-                leading: Icon(
-                  iconeDoSensor(s),
-                  color: CoresBioglow.of(context).corDoSensor(s),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      _SeletorTemaCards(
+                        temaAtual: c.tema,
+                        onChanged: cubit.definirTema,
+                      ),
+                    ],
+                  ),
                 ),
-                title: Row(
-                  children: [
-                    Flexible(child: Text(s.nome)),
-                    if (c.temFaixaPersonalizada(s)) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 2,
+                const _DivisorCard(),
+                SwitchListTile(
+                  secondary: _IconeConfiguracao(
+                    icone: Icons.accessibility_new_rounded,
+                    cor: scheme.tertiary,
+                  ),
+                  title: const Text(
+                    'Modo Acessibilidade (Fontes Grandes)',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    c.modoAcessibilidade
+                        ? 'Fontes ampliadas ativas para melhor visualização'
+                        : 'Amplia todas as fontes do app para facilitar a leitura',
+                  ),
+                  value: c.modoAcessibilidade,
+                  onChanged: cubit.definirModoAcessibilidade,
+                ),
+                const _DivisorCard(),
+                SwitchListTile(
+                  secondary: _IconeConfiguracao(
+                    assetIconePng: IconesApp.sliders,
+                    cor: scheme.primary,
+                  ),
+                  title: const Text(
+                    'Escala automática nos gráficos',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    c.escalaAutomatica
+                        ? 'Eixo vertical ajustado aos valores medidos'
+                        : 'Eixo vertical fixo na escala total de cada sensor',
+                  ),
+                  value: c.escalaAutomatica,
+                  onChanged: cubit.definirEscalaAutomatica,
+                ),
+              ],
+            ),
+
+            // ---------------------------------------------------------
+            // 5. Faixas Ideais e Sensores da Boia
+            // ---------------------------------------------------------
+            const _Secao(
+              titulo: 'Faixas Ideais e Sensores da Boia',
+              icone: Icons.tune_rounded,
+            ),
+            _CardConfiguracao(
+              children: [
+                ListTile(
+                  leading: _IconeConfiguracao(
+                    icone: Icons.tune_rounded,
+                    cor: scheme.primary,
+                  ),
+                  title: const Text(
+                    'Definir todas as faixas ideais',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    c.possuiAlgumaFaixaPersonalizada
+                        ? 'Alguns sensores usam valores personalizados pelo usuário'
+                        : 'Configurar valor mínimo e máximo ideal dos 4 sensores',
+                  ),
+                  trailing: c.possuiAlgumaFaixaPersonalizada
+                      ? TextButton(
+                          onPressed: () async {
+                            await cubit.restaurarTodasFaixasPadrao();
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Faixas dos sensores restauradas para os valores comuns.',
+                                ),
+                              ),
+                            );
+                          },
+                          child: const Text('Usar comuns'),
+                        )
+                      : Icon(
+                          Icons.chevron_right_rounded,
+                          color: scheme.onSurfaceVariant,
                         ),
-                        decoration: BoxDecoration(
-                          color: CoresBioglow.of(
-                            context,
-                          ).corDoSensor(s).withValues(alpha: 0.16),
-                          borderRadius: BorderRadius.circular(10),
+                  onTap: () => mostrarDialogoTodasFaixasSensores(context),
+                ),
+                for (final s in TipoSensor.values) ...[
+                  const _DivisorCard(),
+                  ListTile(
+                    leading: _IconeConfiguracao(
+                      icone: iconeDoSensor(s),
+                      cor: cores.corDoSensor(s),
+                    ),
+                    title: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        Text(
+                          s.nome,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
-                        child: Text(
-                          'Personalizada',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: CoresBioglow.of(context).corDoSensor(s),
+                        if (c.temFaixaPersonalizada(s))
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: cores
+                                  .corDoSensor(s)
+                                  .withValues(alpha: 0.16),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: cores
+                                    .corDoSensor(s)
+                                    .withValues(alpha: 0.35),
+                              ),
+                            ),
+                            child: Text(
+                              'Personalizada',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: cores.corDoSensor(s),
+                              ),
+                            ),
                           ),
+                      ],
+                    ),
+                    subtitle: Text(
+                      '${c.descricaoFaixaDoSensor(s)} • Unidade: ${s.unidade}',
+                    ),
+                    trailing: Icon(
+                      Icons.edit_outlined,
+                      size: 18,
+                      color: cores.corDoSensor(s),
+                    ),
+                    onTap: () => mostrarDialogoFaixaSensor(context, s),
+                  ),
+                ],
+                const _DivisorCard(),
+                ListTile(
+                  leading: _IconeConfiguracao(
+                    assetIconePng: IconesApp.help,
+                    cor: scheme.primary,
+                  ),
+                  title: const Text(
+                    'Tutorial do aplicativo',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: const Text(
+                    'Rever apresentação dos sensores, tabelas, gráficos e cartão SD',
+                  ),
+                  trailing: Icon(
+                    Icons.chevron_right_rounded,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (ctx) => OnboardingScreen(
+                        modoRevisao: true,
+                        onConcluir: () => Navigator.of(ctx).pop(),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            // ---------------------------------------------------------
+            // 6. Sobre
+            // ---------------------------------------------------------
+            const _Secao(
+              titulo: 'Sobre',
+              icone: Icons.info_outline_rounded,
+            ),
+            _CardConfiguracao(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              scheme.primary.withValues(alpha: 0.22),
+                              scheme.primary.withValues(alpha: 0.08),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: scheme.primary.withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: Image.asset(
+                          kAssetBoiaBioglow,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Água Viva Estação Flutuante',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15.5,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Versão 0.3.0 • Estação Multiparamétrica (ESP32)',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: scheme.onSurfaceVariant),
+                            ),
+                          ],
                         ),
                       ),
                     ],
-                  ],
-                ),
-                subtitle: Text(
-                  '${c.descricaoFaixaDoSensor(s)} • Unidade: ${s.unidade} (toque para editar)',
-                ),
-                trailing: const Icon(Icons.edit_outlined, size: 19),
-                onTap: () => mostrarDialogoFaixaSensor(context, s),
-              ),
-            ListTile(
-              leading: IconePng(
-                IconesApp.help,
-                size: 22,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              title: const Text('Tutorial do aplicativo'),
-              subtitle: const Text(
-                'Rever apresentação dos sensores, tabelas, gráficos e cartão SD',
-              ),
-              trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (ctx) => OnboardingScreen(
-                    modoRevisao: true,
-                    onConcluir: () => Navigator.of(ctx).pop(),
                   ),
                 ),
-              ),
+              ],
             ),
 
             // ---------------------------------------------------------
-            const _Secao('Sobre'),
-            const ListTile(
-              leading: IconePng(IconesApp.help, size: 22),
-              title: Text('Água Viva - Monitoramento'),
-              subtitle: Text('Versão 0.3.0 • Estação Multiparamétrica (ESP32)'),
-            ),
-
+            // 7. Restaurar padrões
             // ---------------------------------------------------------
-            const Divider(height: 32),
-            ListTile(
-              leading: Icon(
-                Icons.restore,
-                color: Theme.of(context).colorScheme.error,
+            const SizedBox(height: 20),
+            Card(
+              clipBehavior: Clip.antiAlias,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(
+                  color: scheme.error.withValues(alpha: 0.35),
+                ),
               ),
-              title: Text(
-                'Restaurar padrões',
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              child: ListTile(
+                leading: _IconeConfiguracao(
+                  icone: Icons.restore_rounded,
+                  cor: scheme.error,
+                ),
+                title: Text(
+                  'Restaurar padrões',
+                  style: TextStyle(
+                    color: scheme.error,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                subtitle: const Text(
+                  'Volta conexão, aparência e faixas ideais aos valores originais',
+                ),
+                trailing: Icon(
+                  Icons.chevron_right_rounded,
+                  color: scheme.error.withValues(alpha: 0.75),
+                ),
+                onTap: () => _confirmarRestaurar(context),
               ),
-              onTap: () => _confirmarRestaurar(context),
             ),
             const SizedBox(height: 24),
           ],
@@ -305,9 +533,9 @@ class ConfiguracoesScreen extends StatelessWidget {
           corpo: Text(
             'Todas as configurações de conexão, aparência e faixas ideais voltarão aos valores originais.',
             style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  height: 1.4,
-                ),
+              color: scheme.onSurfaceVariant,
+              height: 1.4,
+            ),
           ),
           acaoCancelar: OutlinedButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -326,6 +554,75 @@ class ConfiguracoesScreen extends StatelessWidget {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Configurações restauradas.')));
+  }
+}
+
+class _CardConfiguracao extends StatelessWidget {
+  final List<Widget> children;
+
+  const _CardConfiguracao({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: scheme.outlineVariant.withValues(alpha: 0.45),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: children,
+      ),
+    );
+  }
+}
+
+class _DivisorCard extends StatelessWidget {
+  const _DivisorCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Divider(
+      height: 1,
+      thickness: 1,
+      indent: 66,
+      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
+    );
+  }
+}
+
+class _IconeConfiguracao extends StatelessWidget {
+  final IconData? icone;
+  final String? assetIconePng;
+  final Color cor;
+
+  const _IconeConfiguracao({
+    this.icone,
+    this.assetIconePng,
+    required this.cor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: cor.withValues(alpha: 0.13),
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(color: cor.withValues(alpha: 0.28)),
+      ),
+      child: Center(
+        child: assetIconePng != null
+            ? IconePng(assetIconePng!, size: 19, color: cor)
+            : Icon(icone, size: 20, color: cor),
+      ),
+    );
   }
 }
 
@@ -418,19 +715,31 @@ class _SeletorTemaCards extends StatelessWidget {
 
 class _Secao extends StatelessWidget {
   final String titulo;
-  const _Secao(this.titulo);
+  final IconData icone;
+  const _Secao({required this.titulo, required this.icone});
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 4),
+      padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
       child: Semantics(
         header: true,
-        child: Text(
-          titulo,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            color: Theme.of(context).colorScheme.primary,
-          ),
+        child: Row(
+          children: [
+            Icon(icone, size: 17, color: scheme.primary),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                titulo,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -469,12 +778,19 @@ class _TileStatusConexao extends StatelessWidget {
         };
 
         return ListTile(
-          leading: Icon(icone, color: cor),
-          title: Text(texto, style: TextStyle(color: cor)),
+          leading: _IconeConfiguracao(icone: icone, cor: cor),
+          title: Text(
+            texto,
+            style: TextStyle(color: cor, fontWeight: FontWeight.w700),
+          ),
           subtitle: const Text('Toque para testar ou reconectar'),
-          trailing: TextButton.icon(
+          trailing: FilledButton.tonalIcon(
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              visualDensity: VisualDensity.compact,
+            ),
             onPressed: () => service.reconectar(),
-            icon: const Icon(Icons.refresh, size: 18),
+            icon: const Icon(Icons.refresh, size: 16),
             label: const Text('Testar'),
           ),
           onTap: () => service.reconectar(),
@@ -484,10 +800,11 @@ class _TileStatusConexao extends StatelessWidget {
   }
 }
 
-/// ListTile com um menu suspenso de opções à direita.
+/// ListTile com um menu suspenso estilizado de opções à direita.
 class _ListTileOpcoes<T> extends StatelessWidget {
   final IconData icone;
   final String? assetIconePng;
+  final Color cor;
   final String titulo;
   final String? descricao;
   final T valor;
@@ -498,6 +815,7 @@ class _ListTileOpcoes<T> extends StatelessWidget {
   const _ListTileOpcoes({
     required this.icone,
     this.assetIconePng,
+    required this.cor,
     required this.titulo,
     this.descricao,
     required this.valor,
@@ -509,21 +827,42 @@ class _ListTileOpcoes<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final habilitado = onChanged != null;
+    final scheme = Theme.of(context).colorScheme;
     return ListTile(
       enabled: habilitado,
-      leading: assetIconePng != null
-          ? IconePng(assetIconePng!, size: 22)
-          : Icon(icone),
-      title: Text(titulo),
+      leading: _IconeConfiguracao(
+        icone: icone,
+        assetIconePng: assetIconePng,
+        cor: habilitado ? cor : scheme.outline,
+      ),
+      title: Text(
+        titulo,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
       subtitle: descricao == null ? null : Text(descricao!),
-      trailing: DropdownButton<T>(
-        value: valor,
-        underline: const SizedBox.shrink(),
-        onChanged: habilitado ? (v) => v == null ? null : onChanged!(v) : null,
-        items: [
-          for (final o in opcoes)
-            DropdownMenuItem(value: o, child: Text(rotulo(o))),
-        ],
+      trailing: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHighest.withValues(
+            alpha: habilitado ? 0.55 : 0.25,
+          ),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: scheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+        ),
+        child: DropdownButton<T>(
+          value: valor,
+          isDense: true,
+          borderRadius: BorderRadius.circular(12),
+          underline: const SizedBox.shrink(),
+          onChanged:
+              habilitado ? (v) => v == null ? null : onChanged!(v) : null,
+          items: [
+            for (final o in opcoes)
+              DropdownMenuItem(value: o, child: Text(rotulo(o))),
+          ],
+        ),
       ),
     );
   }
@@ -599,8 +938,8 @@ class _DialogoEnderecoState extends State<_DialogoEndereco> {
                     child: Text(
                       'Padrão da boia: ws://${Configuracoes.hostPadrao}:${Configuracoes.portaPadrao}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                          ),
+                        color: scheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ],

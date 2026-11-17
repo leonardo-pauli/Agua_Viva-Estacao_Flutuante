@@ -76,17 +76,16 @@ abstract final class ExportadorCsv {
                       children: [
                         Text(
                           tituloRelatorio,
-                          style:
-                              Theme.of(ctx).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                  ),
+                          style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           '$nomeArquivo • $totalLinhas amostras',
                           style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                              ),
+                            color: scheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
@@ -137,10 +136,7 @@ abstract final class ExportadorCsv {
                 leading: CircleAvatar(
                   backgroundColor: scheme.secondaryContainer,
                   foregroundColor: scheme.onSecondaryContainer,
-                  child: Icon(
-                    Icons.save_alt_rounded,
-                    size: resp.icone(20),
-                  ),
+                  child: Icon(Icons.save_alt_rounded, size: resp.icone(20)),
                 ),
                 title: Text(
                   resp.isDesktop
@@ -169,10 +165,7 @@ abstract final class ExportadorCsv {
                 leading: CircleAvatar(
                   backgroundColor: scheme.surfaceContainerHighest,
                   foregroundColor: scheme.onSurfaceVariant,
-                  child: Icon(
-                    Icons.copy_rounded,
-                    size: resp.icone(19),
-                  ),
+                  child: Icon(Icons.copy_rounded, size: resp.icone(19)),
                 ),
                 title: const Text(
                   'Copiar texto CSV',
@@ -298,11 +291,12 @@ abstract final class ExportadorCsv {
     // No Windows: abre a janela nativa "Salvar como..." do Windows
     if (!kIsWeb && Platform.isWindows) {
       try {
-        final script = '''
+        final script =
+            '''
 Add-Type -AssemblyName System.Windows.Forms
 \$dlg = New-Object System.Windows.Forms.SaveFileDialog
 \$dlg.Filter = "Arquivo CSV (*.csv)|*.csv"
-\$dlg.Title = "Salvar planilha CSV - Água Viva - Monitoramento"
+\$dlg.Title = "Salvar planilha CSV - Água Viva"
 \$dlg.FileName = "$nomeArquivo"
 if (\$dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
   Write-Output \$dlg.FileName
@@ -350,8 +344,8 @@ if (\$dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
   ) async {
     if (kIsWeb) return null;
     try {
-      final home = Platform.environment['USERPROFILE'] ??
-          Platform.environment['HOME'];
+      final home =
+          Platform.environment['USERPROFILE'] ?? Platform.environment['HOME'];
       Directory dir = Directory.systemTemp;
       if (home != null) {
         final downloads = Directory('$home${Platform.pathSeparator}Downloads');
@@ -360,8 +354,9 @@ if (\$dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
         }
       }
       final arquivo = File('${dir.path}${Platform.pathSeparator}$nomeArquivo');
-      final comBom =
-          conteudoCsv.startsWith('\uFEFF') ? conteudoCsv : '\uFEFF$conteudoCsv';
+      final comBom = conteudoCsv.startsWith('\uFEFF')
+          ? conteudoCsv
+          : '\uFEFF$conteudoCsv';
       await arquivo.writeAsString(comBom, flush: true);
       return arquivo.path;
     } catch (e) {

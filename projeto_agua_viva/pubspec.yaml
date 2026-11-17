@@ -1,7 +1,7 @@
 name: bioglow_receptor
 description: "Receptor Bioglow - monitoramento de pH, Temperatura, Condutividade e Turbidez via Wi-Fi (WebSocket) e cartão SD."
 publish_to: 'none'
-version: 0.3.0+3
+version: 0.3.0+4
 
 environment:
   sdk: ^3.12.1

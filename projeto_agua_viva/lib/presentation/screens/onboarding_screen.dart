@@ -70,11 +70,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Color _corDaPagina(CoresBioglow cores, int index) => switch (index) {
-        0 => const Color(0xFF00BCD4),
-        1 => cores.ph,
-        2 => cores.condutividade,
-        _ => cores.turbidez,
-      };
+    0 => const Color(0xFF00BCD4),
+    1 => cores.ph,
+    2 => cores.condutividade,
+    _ => cores.turbidez,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -102,228 +102,234 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               constraints: const BoxConstraints(maxWidth: 740),
               child: Column(
                 children: [
-              // ----------------------------------------------------------
-              // Barra superior (Selo + Botão Pular / Fechar)
-              // ----------------------------------------------------------
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 16, 4),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: corAtiva.withValues(alpha: 0.14),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: corAtiva.withValues(alpha: 0.35),
+                  // ----------------------------------------------------------
+                  // Barra superior (Selo + Botão Pular / Fechar)
+                  // ----------------------------------------------------------
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 16, 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: corAtiva.withValues(alpha: 0.14),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: corAtiva.withValues(alpha: 0.35),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.water_drop_rounded,
+                                  size: 14,
+                                  color: corAtiva,
+                                ),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      'ÁGUA VIVA',
+                                      maxLines: 1,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.6,
+                                        color: corAtiva,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.water_drop_rounded,
-                              size: 14,
-                              color: corAtiva,
+                        if (widget.modoRevisao || !naUltimaPagina) ...[
+                          const SizedBox(width: 8),
+                          TextButton(
+                            onPressed: _finalizarTutorial,
+                            child: Text(
+                              widget.modoRevisao ? 'Fechar' : 'Pular',
                             ),
-                            const SizedBox(width: 6),
-                            Flexible(
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  'ÁGUA VIVA • MONITORAMENTO',
-                                  maxLines: 1,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.6,
-                                    color: corAtiva,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+
+                  // ----------------------------------------------------------
+                  // Carrossel de páginas (Scroll para a direita)
+                  // ----------------------------------------------------------
+                  Expanded(
+                    child: PageView(
+                      controller: _controller,
+                      physics: const BouncingScrollPhysics(),
+                      onPageChanged: (index) =>
+                          setState(() => _paginaAtual = index),
+                      children: const [
+                        _Slide1BoiaConexao(),
+                        _Slide2QuatroSensores(),
+                        _Slide3GraficosTabelas(),
+                        _Slide4ArmazenamentoSd(),
+                      ],
+                    ),
+                  ),
+
+                  // ----------------------------------------------------------
+                  // Rodapé: Bolinhas indicadoras + Botões de avanço
+                  // ----------------------------------------------------------
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                    child: Column(
+                      children: [
+                        // Bolinhas sinalizadoras de página
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(_totalPaginas, (index) {
+                            final selecionado = index == _paginaAtual;
+                            return GestureDetector(
+                              onTap: () => _controller.animateToPage(
+                                index,
+                                duration: const Duration(milliseconds: 350),
+                                curve: Curves.easeOutCubic,
+                              ),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 280),
+                                curve: Curves.easeOut,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                height: 9,
+                                width: selecionado ? 28 : 9,
+                                decoration: BoxDecoration(
+                                  color: selecionado
+                                      ? corAtiva
+                                      : scheme.outlineVariant,
+                                  borderRadius: BorderRadius.circular(10),
+                                  boxShadow: selecionado
+                                      ? [
+                                          BoxShadow(
+                                            color: corAtiva.withValues(
+                                              alpha: 0.4,
+                                            ),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                        const SizedBox(height: 18),
+                        if (Responsivo.of(context).isTablet)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              if (_paginaAtual > 0)
+                                OutlinedButton.icon(
+                                  onPressed: _paginaAnterior,
+                                  icon: const Icon(
+                                    Icons.arrow_back_rounded,
+                                    size: 18,
+                                  ),
+                                  label: const Text('Anterior'),
+                                )
+                              else
+                                const SizedBox(width: 80),
+                              const SizedBox(width: 12),
+                              FilledButton.icon(
+                                onPressed: _proximaPagina,
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: corAtiva,
+                                  foregroundColor: Colors.black87,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 14,
+                                  ),
+                                ),
+                                icon: Icon(
+                                  naUltimaPagina
+                                      ? Icons.check_circle_outline_rounded
+                                      : Icons.arrow_forward_rounded,
+                                  size: 18,
+                                ),
+                                label: Text(
+                                  naUltimaPagina
+                                      ? (widget.modoRevisao
+                                            ? 'Concluir Tutorial'
+                                            : 'Começar a Monitorar')
+                                      : 'Próximo',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
+                            ],
+                          )
+                        else
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              FilledButton.icon(
+                                onPressed: _proximaPagina,
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: corAtiva,
+                                  foregroundColor: Colors.black87,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 14,
+                                  ),
+                                ),
+                                icon: Icon(
+                                  naUltimaPagina
+                                      ? Icons.check_circle_outline_rounded
+                                      : Icons.arrow_forward_rounded,
+                                  size: 18,
+                                ),
+                                label: Text(
+                                  naUltimaPagina
+                                      ? (widget.modoRevisao
+                                            ? 'Concluir Tutorial'
+                                            : 'Começar a Monitorar')
+                                      : 'Próximo',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              if (_paginaAtual > 0) ...[
+                                const SizedBox(height: 8),
+                                OutlinedButton.icon(
+                                  onPressed: _paginaAnterior,
+                                  icon: const Icon(
+                                    Icons.arrow_back_rounded,
+                                    size: 18,
+                                  ),
+                                  label: const Text('Anterior'),
+                                ),
+                              ],
+                            ],
+                          ),
+                      ],
                     ),
-                    if (widget.modoRevisao || !naUltimaPagina) ...[
-                      const SizedBox(width: 8),
-                      TextButton(
-                        onPressed: _finalizarTutorial,
-                        child: Text(widget.modoRevisao ? 'Fechar' : 'Pular'),
-                      ),
-                    ],
-                  ],
-                ),
+                  ),
+                ],
               ),
-
-              // ----------------------------------------------------------
-              // Carrossel de páginas (Scroll para a direita)
-              // ----------------------------------------------------------
-              Expanded(
-                child: PageView(
-                  controller: _controller,
-                  physics: const BouncingScrollPhysics(),
-                  onPageChanged: (index) =>
-                      setState(() => _paginaAtual = index),
-                  children: const [
-                    _Slide1BoiaConexao(),
-                    _Slide2QuatroSensores(),
-                    _Slide3GraficosTabelas(),
-                    _Slide4ArmazenamentoSd(),
-                  ],
-                ),
-              ),
-
-              // ----------------------------------------------------------
-              // Rodapé: Bolinhas indicadoras + Botões de avanço
-              // ----------------------------------------------------------
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                child: Column(
-                  children: [
-                    // Bolinhas sinalizadoras de página
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(_totalPaginas, (index) {
-                        final selecionado = index == _paginaAtual;
-                        return GestureDetector(
-                          onTap: () => _controller.animateToPage(
-                            index,
-                            duration: const Duration(milliseconds: 350),
-                            curve: Curves.easeOutCubic,
-                          ),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 280),
-                            curve: Curves.easeOut,
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            height: 9,
-                            width: selecionado ? 28 : 9,
-                            decoration: BoxDecoration(
-                              color: selecionado
-                                  ? corAtiva
-                                  : scheme.outlineVariant,
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: selecionado
-                                  ? [
-                                      BoxShadow(
-                                        color: corAtiva.withValues(alpha: 0.4),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
-                    const SizedBox(height: 18),
-                    if (Responsivo.of(context).isTablet)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          if (_paginaAtual > 0)
-                            OutlinedButton.icon(
-                              onPressed: _paginaAnterior,
-                              icon: const Icon(
-                                Icons.arrow_back_rounded,
-                                size: 18,
-                              ),
-                              label: const Text('Anterior'),
-                            )
-                          else
-                            const SizedBox(width: 80),
-                          const SizedBox(width: 12),
-                          FilledButton.icon(
-                            onPressed: _proximaPagina,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: corAtiva,
-                              foregroundColor: Colors.black87,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 14,
-                              ),
-                            ),
-                            icon: Icon(
-                              naUltimaPagina
-                                  ? Icons.check_circle_outline_rounded
-                                  : Icons.arrow_forward_rounded,
-                              size: 18,
-                            ),
-                            label: Text(
-                              naUltimaPagina
-                                  ? (widget.modoRevisao
-                                      ? 'Concluir Tutorial'
-                                      : 'Começar a Monitorar')
-                                  : 'Próximo',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    else
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          FilledButton.icon(
-                            onPressed: _proximaPagina,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: corAtiva,
-                              foregroundColor: Colors.black87,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 14,
-                              ),
-                            ),
-                            icon: Icon(
-                              naUltimaPagina
-                                  ? Icons.check_circle_outline_rounded
-                                  : Icons.arrow_forward_rounded,
-                              size: 18,
-                            ),
-                            label: Text(
-                              naUltimaPagina
-                                  ? (widget.modoRevisao
-                                      ? 'Concluir Tutorial'
-                                      : 'Começar a Monitorar')
-                                  : 'Próximo',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          if (_paginaAtual > 0) ...[
-                            const SizedBox(height: 8),
-                            OutlinedButton.icon(
-                              onPressed: _paginaAnterior,
-                              icon: const Icon(
-                                Icons.arrow_back_rounded,
-                                size: 18,
-                              ),
-                              label: const Text('Anterior'),
-                            ),
-                          ],
-                        ],
-                      ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
-    ),
-  ),
-);
+    );
   }
 }
 
@@ -395,7 +401,7 @@ class _Slide1BoiaConexao extends StatelessWidget {
                         ),
                         SizedBox(width: 6),
                         Text(
-                          'Wi-Fi: Bioglow_Boia',
+                          'Wi-Fi: AguaViva',
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w700,
@@ -411,20 +417,19 @@ class _Slide1BoiaConexao extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             'Estação Aquática Autônoma',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 10),
           Text(
-            'O Água Viva - Monitoramento transforma o seu celular ou tablet em uma central científica de '
-            'monitoramento da qualidade da água em tempo real, projetada para '
-            'pesquisadores em campo.',
+            'O Água Viva transforma o seu celular ou tablet em uma central científica de '
+            'monitoramento da água em tempo real.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  height: 1.45,
-                ),
+              color: scheme.onSurfaceVariant,
+              height: 1.45,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
@@ -433,7 +438,7 @@ class _Slide1BoiaConexao extends StatelessWidget {
             cor: corDestaque,
             titulo: 'Rede Wi-Fi Própria na Boia',
             descricao:
-                'Funciona em rios, represas ou no mar sem precisar de internet ou sinal de operadora.',
+                'Funciona em rios, lagos ou represas sem precisar de internet ou sinal de operadora.',
           ),
           const SizedBox(height: 10),
           const _ItemDestaqueTutorial(
@@ -467,9 +472,9 @@ class _Slide2QuatroSensores extends StatelessWidget {
         children: [
           Text(
             '4 Sensores Físico-Químicos',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 6),
@@ -477,9 +482,9 @@ class _Slide2QuatroSensores extends StatelessWidget {
             'Toque em qualquer sensor abaixo para ampliar a visualização do '
             'módulo utilizado na boia:',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  height: 1.35,
-                ),
+              color: scheme.onSurfaceVariant,
+              height: 1.35,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 14),
@@ -537,10 +542,7 @@ class _CardHardwareSensor extends StatelessWidget {
   final TipoSensor sensor;
   final Color cor;
 
-  const _CardHardwareSensor({
-    required this.sensor,
-    required this.cor,
-  });
+  const _CardHardwareSensor({required this.sensor, required this.cor});
 
   void _ampliarSensor(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -580,18 +582,15 @@ class _CardHardwareSensor extends StatelessWidget {
                   Text(
                     sensor.nome,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 4),
               Text(
                 '${sensor.subtitulo} • Unidade: ${sensor.unidade}',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: scheme.onSurfaceVariant,
-                ),
+                style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 6),
@@ -640,9 +639,7 @@ class _CardHardwareSensor extends StatelessWidget {
           decoration: BoxDecoration(
             color: scheme.surfaceContainerHighest.withValues(alpha: 0.28),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: cor.withValues(alpha: 0.35),
-            ),
+            border: Border.all(color: cor.withValues(alpha: 0.35)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -689,10 +686,7 @@ class _CardHardwareSensor extends StatelessWidget {
               Text(
                 '${sensor.unidade} • ${sensor.descricaoFaixa}',
                 maxLines: 2,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: scheme.onSurfaceVariant,
-                ),
+                style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
               ),
             ],
           ),
@@ -739,15 +733,22 @@ class _Slide3GraficosTabelas extends StatelessWidget {
                       _ChipDemo(texto: 'pH', cor: cores.ph, ativo: true),
                       const SizedBox(width: 6),
                       _ChipDemo(
-                          texto: 'Temp.', cor: cores.temperatura, ativo: false),
+                        texto: 'Temp.',
+                        cor: cores.temperatura,
+                        ativo: false,
+                      ),
                       const SizedBox(width: 6),
                       _ChipDemo(
-                          texto: 'Condut.',
-                          cor: cores.condutividade,
-                          ativo: false),
+                        texto: 'Condut.',
+                        cor: cores.condutividade,
+                        ativo: false,
+                      ),
                       const SizedBox(width: 6),
                       _ChipDemo(
-                          texto: 'Turbidez', cor: cores.turbidez, ativo: false),
+                        texto: 'Turbidez',
+                        cor: cores.turbidez,
+                        ativo: false,
+                      ),
                     ],
                   ),
                 ),
@@ -798,9 +799,9 @@ class _Slide3GraficosTabelas extends StatelessWidget {
           const SizedBox(height: 18),
           Text(
             'Gráficos, Tabelas e Alertas',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
@@ -808,9 +809,9 @@ class _Slide3GraficosTabelas extends StatelessWidget {
             'Visualize o comportamento de cada sensor separadamente com '
             'escalas inteligentes e exporte os dados para suas planilhas.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  height: 1.4,
-                ),
+              color: scheme.onSurfaceVariant,
+              height: 1.4,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -855,9 +856,7 @@ class _ChipDemo extends StatelessWidget {
       decoration: BoxDecoration(
         color: ativo ? cor.withValues(alpha: 0.2) : Colors.transparent,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: ativo ? cor : cor.withValues(alpha: 0.35),
-        ),
+        border: Border.all(color: ativo ? cor : cor.withValues(alpha: 0.35)),
       ),
       child: Text(
         texto,
@@ -983,9 +982,9 @@ class _Slide4ArmazenamentoSd extends StatelessWidget {
           const SizedBox(height: 18),
           Text(
             'Armazenamento no Cartão SD',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
@@ -993,9 +992,9 @@ class _Slide4ArmazenamentoSd extends StatelessWidget {
             'Você não precisa ficar o dia todo ao lado da boia. Mesmo sem o '
             'celular por perto, ela continua registrando tudo no cartão MicroSD.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  height: 1.4,
-                ),
+              color: scheme.onSurfaceVariant,
+              height: 1.4,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -1156,9 +1155,15 @@ class _CurvaGraficoDemoPainter extends CustomPainter {
     final yIdealBot = size.height * 0.75;
     for (double x = 0; x < size.width; x += 10) {
       canvas.drawLine(
-          Offset(x, yIdealTop), Offset(x + 5, yIdealTop), paintGuia);
+        Offset(x, yIdealTop),
+        Offset(x + 5, yIdealTop),
+        paintGuia,
+      );
       canvas.drawLine(
-          Offset(x, yIdealBot), Offset(x + 5, yIdealBot), paintGuia);
+        Offset(x, yIdealBot),
+        Offset(x + 5, yIdealBot),
+        paintGuia,
+      );
     }
 
     final path = Path();
@@ -1167,7 +1172,8 @@ class _CurvaGraficoDemoPainter extends CustomPainter {
     for (var i = 0; i <= n; i++) {
       final t = i / n;
       final x = t * size.width;
-      final y = size.height * 0.5 +
+      final y =
+          size.height * 0.5 +
           math.sin(t * math.pi * 2.2) * (size.height * 0.22) +
           math.cos(t * math.pi * 5) * (size.height * 0.06);
       if (i == 0) {

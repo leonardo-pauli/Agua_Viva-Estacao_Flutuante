@@ -135,20 +135,50 @@ void main() {
       );
     });
 
-    test('escalaTexto aumenta todas as fontes quando modoAcessibilidade está ativo', () {
-      const mobile = Responsivo(Size(390, 844), plataforma: TargetPlatform.android);
-      const tablet = Responsivo(Size(800, 1280), plataforma: TargetPlatform.android);
-      const desktop = Responsivo(Size(1280, 800), plataforma: TargetPlatform.windows);
+    test(
+      'escalaTexto aumenta todas as fontes quando modoAcessibilidade está ativo',
+      () {
+        const mobile = Responsivo(
+          Size(390, 844),
+          plataforma: TargetPlatform.android,
+        );
+        const tablet = Responsivo(
+          Size(800, 1280),
+          plataforma: TargetPlatform.android,
+        );
+        const desktop = Responsivo(
+          Size(1280, 800),
+          plataforma: TargetPlatform.windows,
+        );
 
-      expect(mobile.escalaTexto(1.0, modoAcessibilidade: false), closeTo(1.14, 0.001));
-      expect(mobile.escalaTexto(1.0, modoAcessibilidade: true), closeTo(1.425, 0.001));
-      expect(tablet.escalaTexto(1.0, modoAcessibilidade: false), closeTo(1.45, 0.001));
-      expect(tablet.escalaTexto(1.0, modoAcessibilidade: true), closeTo(1.8125, 0.001));
-      expect(desktop.escalaTexto(1.0, modoAcessibilidade: false), closeTo(1.22, 0.001));
-      expect(desktop.escalaTexto(1.0, modoAcessibilidade: true), closeTo(1.525, 0.001));
-      expect(tablet.escalaTexto(2.0, modoAcessibilidade: false), 2.15);
-      expect(tablet.escalaTexto(2.0, modoAcessibilidade: true), 2.50);
-    });
+        expect(
+          mobile.escalaTexto(1.0, modoAcessibilidade: false),
+          closeTo(1.14, 0.001),
+        );
+        expect(
+          mobile.escalaTexto(1.0, modoAcessibilidade: true),
+          closeTo(1.425, 0.001),
+        );
+        expect(
+          tablet.escalaTexto(1.0, modoAcessibilidade: false),
+          closeTo(1.45, 0.001),
+        );
+        expect(
+          tablet.escalaTexto(1.0, modoAcessibilidade: true),
+          closeTo(1.8125, 0.001),
+        );
+        expect(
+          desktop.escalaTexto(1.0, modoAcessibilidade: false),
+          closeTo(1.22, 0.001),
+        );
+        expect(
+          desktop.escalaTexto(1.0, modoAcessibilidade: true),
+          closeTo(1.525, 0.001),
+        );
+        expect(tablet.escalaTexto(2.0, modoAcessibilidade: false), 2.15);
+        expect(tablet.escalaTexto(2.0, modoAcessibilidade: true), 2.50);
+      },
+    );
   });
 
   group('Faixas ideais somente em Configurações (removida do Drawer)', () {
@@ -200,7 +230,7 @@ void main() {
         await tester.tap(find.byTooltip('Menu principal'));
         await tester.pumpAndSettle();
 
-        expect(find.text('Água Viva - Monitoramento'), findsOneWidget);
+        expect(find.text('Água Viva'), findsOneWidget);
         expect(find.text('Início • Painel ao Vivo'), findsOneWidget);
         expect(find.text('Relatório do Cartão SD'), findsOneWidget);
         expect(find.text('Configurações'), findsOneWidget);
@@ -320,95 +350,97 @@ void main() {
       await wsService.dispose();
     });
 
-    testWidgets('DashboardScreen exibe amostras em cards separados abaixo da hora', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(360, 740);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.reset);
+    testWidgets(
+      'DashboardScreen exibe amostras em cards separados abaixo da hora',
+      (tester) async {
+        tester.view.physicalSize = const Size(360, 740);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
 
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-      final cfgCubit = ConfiguracoesCubit(ConfiguracoesRepository(prefs));
-      final wsService = _FakeEsp32WebSocketService();
-      final dashCubit = DashboardCubit(wsService, cfgCubit);
-      dashCubit.restaurar([
-        LeituraEntity(
-          data: '13/11/2026',
-          hora: '12:03:11',
-          recebidoEm: DateTime(2026, 11, 13, 12, 3, 11),
-          ph: 7.06,
-          temperatura: 25.1,
-          condutividade: 323,
-          turbidez: 11.7,
-        ),
-      ]);
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        final cfgCubit = ConfiguracoesCubit(ConfiguracoesRepository(prefs));
+        final wsService = _FakeEsp32WebSocketService();
+        final dashCubit = DashboardCubit(wsService, cfgCubit);
+        dashCubit.restaurar([
+          LeituraEntity(
+            data: '13/11/2026',
+            hora: '12:03:11',
+            recebidoEm: DateTime(2026, 11, 13, 12, 3, 11),
+            ph: 7.06,
+            temperatura: 25.1,
+            condutividade: 323,
+            turbidez: 11.7,
+          ),
+        ]);
 
-      await tester.pumpWidget(
-        comEscalaResponsiva(
-          cfgCubit: cfgCubit,
-          dashCubit: dashCubit,
-          wsService: wsService,
-          home: const DashboardScreen(),
-        ),
-      );
-      await tester.pump();
+        await tester.pumpWidget(
+          comEscalaResponsiva(
+            cfgCubit: cfgCubit,
+            dashCubit: dashCubit,
+            wsService: wsService,
+            home: const DashboardScreen(),
+          ),
+        );
+        await tester.pump();
 
-      await tester.scrollUntilVisible(find.text('Amostras Recentes (1)'), 300);
-      expect(find.text('Amostras Recentes (1)'), findsOneWidget);
-      expect(find.text('13/11/2026  •  12:03:11'), findsOneWidget);
-      expect(find.text('pH 7.06'), findsOneWidget);
-      expect(find.text('323 µS/cm'), findsOneWidget);
+        await tester.scrollUntilVisible(
+          find.text('Amostras Recentes (1)'),
+          300,
+        );
+        expect(find.text('Amostras Recentes (1)'), findsOneWidget);
+        expect(find.text('13/11/2026  •  12:03:11'), findsOneWidget);
+        expect(find.text('pH 7.06'), findsOneWidget);
+        expect(find.text('323 µS/cm'), findsOneWidget);
 
-      await dashCubit.close();
-      await cfgCubit.close();
-      await wsService.dispose();
-    });
+        await dashCubit.close();
+        await cfgCubit.close();
+        await wsService.dispose();
+      },
+    );
 
-    testWidgets('RelatorioScreen e dialogo inicial de faixas renderizam sem overflow', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(360, 740);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.reset);
+    testWidgets(
+      'RelatorioScreen e dialogo inicial de faixas renderizam sem overflow',
+      (tester) async {
+        tester.view.physicalSize = const Size(360, 740);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
 
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-      final cfgCubit = ConfiguracoesCubit(ConfiguracoesRepository(prefs));
-      final wsService = _FakeEsp32WebSocketService();
-      final dashCubit = DashboardCubit(wsService, cfgCubit);
-      dashCubit.definirModoSimulacao(true);
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        final cfgCubit = ConfiguracoesCubit(ConfiguracoesRepository(prefs));
+        final wsService = _FakeEsp32WebSocketService();
+        final dashCubit = DashboardCubit(wsService, cfgCubit);
+        dashCubit.definirModoSimulacao(true);
 
-      await tester.pumpWidget(
-        comEscalaResponsiva(
-          cfgCubit: cfgCubit,
-          dashCubit: dashCubit,
-          wsService: wsService,
-          home: const RelatorioScreen(),
-        ),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          comEscalaResponsiva(
+            cfgCubit: cfgCubit,
+            dashCubit: dashCubit,
+            wsService: wsService,
+            home: const RelatorioScreen(),
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.text('Amostras SD'), findsOneWidget);
-      expect(find.text('Mínimo (pH)'), findsOneWidget);
+        expect(find.text('Amostras SD'), findsOneWidget);
+        expect(find.text('Mínimo (pH)'), findsOneWidget);
 
-      // Testa também o diálogo inicial de faixas ideais
-      mostrarEscolhaInicialFaixas(
-        tester.element(find.byType(RelatorioScreen)),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('Condutividade'), findsOneWidget);
-      expect(
-        find.text('Faixa comum: 50.0 – 1500.0 µS/cm'),
-        findsOneWidget,
-      );
-      await tester.tap(find.text('Seguir com comuns'));
-      await tester.pumpAndSettle();
+        // Testa também o diálogo inicial de faixas ideais
+        mostrarEscolhaInicialFaixas(
+          tester.element(find.byType(RelatorioScreen)),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Condutividade'), findsOneWidget);
+        expect(find.text('Faixa comum: 50.0 – 1500.0 µS/cm'), findsOneWidget);
+        await tester.tap(find.text('Seguir com comuns'));
+        await tester.pumpAndSettle();
 
-      await dashCubit.close();
-      await cfgCubit.close();
-      await wsService.dispose();
-    });
+        await dashCubit.close();
+        await cfgCubit.close();
+        await wsService.dispose();
+      },
+    );
 
     testWidgets('AppBar amplia espessura em tablet/desktop e exibe novo nome', (
       tester,
@@ -433,7 +465,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.text('Água Viva - Monitoramento'), findsOneWidget);
+      expect(find.text('Água Viva'), findsOneWidget);
       expect(tester.getSize(find.byType(AppBar)).height, 82);
 
       await dashCubit.close();

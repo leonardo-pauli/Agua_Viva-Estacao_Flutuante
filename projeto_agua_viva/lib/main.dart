@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data/configuracoes_repository.dart';
 import 'data/esp32_websocket_service.dart';
@@ -32,10 +31,10 @@ class _ComportamentoScrollMultidispositivo extends MaterialScrollBehavior {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Carrega as preferências antes do primeiro frame para o app já abrir
-  // com o tema e o endereço corretos.
-  final prefs = await SharedPreferences.getInstance();
-  runApp(BioglowApp(configuracoes: ConfiguracoesRepository(prefs)));
+  // Carrega as preferências antes do primeiro frame com proteção contra falhas
+  // ou travamentos nativos, garantindo que o runApp sempre seja executado.
+  final configuracoes = await ConfiguracoesRepository.inicializarSeguro();
+  runApp(BioglowApp(configuracoes: configuracoes));
 }
 
 class BioglowApp extends StatefulWidget {
@@ -78,56 +77,57 @@ class _BioglowAppState extends State<BioglowApp> {
             ctx.read<Esp32WebSocketService>(),
             ctx.read<ConfiguracoesCubit>(),
           ),
-          child: BlocSelector<
-            ConfiguracoesCubit,
-            Configuracoes,
-            ({TemaApp tema, bool acessibilidade})
-          >(
-            selector: (c) => (
-              tema: c.tema,
-              acessibilidade: c.modoAcessibilidade,
-            ),
-            builder: (context, visual) => MaterialApp(
-              title: 'Água Viva - Monitoramento',
-              debugShowCheckedModeBanner: false,
-              scrollBehavior: const _ComportamentoScrollMultidispositivo(),
-              theme: temaBioglow(Brightness.light),
-              darkTheme: temaBioglow(Brightness.dark),
-              themeMode: modoDoTema(visual.tema),
-              builder: (context, child) {
-                final mq = MediaQuery.of(context);
-                final resp = Responsivo(mq.size);
-                final escalaSistema = mq.textScaler.scale(1.0);
-                final escalaFinal = resp.escalaTexto(
-                  escalaSistema,
-                  modoAcessibilidade: visual.acessibilidade,
-                );
-                final themeAtual = Theme.of(context);
-                return MediaQuery(
-                  data: mq.copyWith(textScaler: TextScaler.linear(escalaFinal)),
-                  child: Theme(
-                    data: themeAtual.copyWith(
-                      appBarTheme: themeAtual.appBarTheme.copyWith(
-                        toolbarHeight: resp.alturaAppBar,
+          child:
+              BlocSelector<
+                ConfiguracoesCubit,
+                Configuracoes,
+                ({TemaApp tema, bool acessibilidade})
+              >(
+                selector: (c) =>
+                    (tema: c.tema, acessibilidade: c.modoAcessibilidade),
+                builder: (context, visual) => MaterialApp(
+                  title: 'Água Viva Estação Flutuante',
+                  debugShowCheckedModeBanner: false,
+                  scrollBehavior: const _ComportamentoScrollMultidispositivo(),
+                  theme: temaBioglow(Brightness.light),
+                  darkTheme: temaBioglow(Brightness.dark),
+                  themeMode: modoDoTema(visual.tema),
+                  builder: (context, child) {
+                    final mq = MediaQuery.of(context);
+                    final resp = Responsivo(mq.size);
+                    final escalaSistema = mq.textScaler.scale(1.0);
+                    final escalaFinal = resp.escalaTexto(
+                      escalaSistema,
+                      modoAcessibilidade: visual.acessibilidade,
+                    );
+                    final themeAtual = Theme.of(context);
+                    return MediaQuery(
+                      data: mq.copyWith(
+                        textScaler: TextScaler.linear(escalaFinal),
                       ),
-                    ),
-                    child: IconTheme.merge(
-                      data: IconThemeData(size: resp.icone(22)),
-                      child: child ?? const SizedBox.shrink(),
-                    ),
-                  ),
-                );
-              },
-              home: _carregandoSplash
-                  ? SplashScreen(
-                      onConcluir: () =>
-                          setState(() => _carregandoSplash = false),
-                    )
-                  : _mostrarTutorial
-                  ? OnboardingScreen(onConcluir: _concluirTutorialInicial)
-                  : const AusenciaMonitor(child: DashboardScreen()),
-            ),
-          ),
+                      child: Theme(
+                        data: themeAtual.copyWith(
+                          appBarTheme: themeAtual.appBarTheme.copyWith(
+                            toolbarHeight: resp.alturaAppBar,
+                          ),
+                        ),
+                        child: IconTheme.merge(
+                          data: IconThemeData(size: resp.icone(22)),
+                          child: child ?? const SizedBox.shrink(),
+                        ),
+                      ),
+                    );
+                  },
+                  home: _carregandoSplash
+                      ? SplashScreen(
+                          onConcluir: () =>
+                              setState(() => _carregandoSplash = false),
+                        )
+                      : _mostrarTutorial
+                      ? OnboardingScreen(onConcluir: _concluirTutorialInicial)
+                      : const AusenciaMonitor(child: DashboardScreen()),
+                ),
+              ),
         ),
       ),
     );

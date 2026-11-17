@@ -62,7 +62,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
               child: Text(
-                respAppBar.isTablet ? 'Água Viva - Monitoramento' : 'Água Viva',
+                respAppBar.isTablet ? 'Água Viva' : 'Água Viva',
                 maxLines: 1,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
@@ -74,9 +74,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
               child: Text(
-                respAppBar.isTablet
-                    ? 'Estação Boia • Qualidade da Água'
-                    : 'Monitoramento • Qualidade da Água',
+                respAppBar.isTablet ? 'Estação Flutuante' : 'Estação Flutuante',
                 maxLines: 1,
                 style: const TextStyle(
                   fontSize: 12.5,
@@ -161,7 +159,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Sensores de Qualidade da Água',
+                          'Sensores de Monitoramento',
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
@@ -300,7 +298,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     await ExportadorCsv.mostrarOpcoes(
       context,
-      nomeArquivo: ExportadorCsv.gerarNomeArquivo('bioglow_ao_vivo'),
+      nomeArquivo: ExportadorCsv.gerarNomeArquivo('Agua_Viva'),
       conteudoCsv: buffer.toString(),
       totalLinhas: historico.length,
       tituloRelatorio: 'Exportar Leituras ao Vivo (.CSV)',
@@ -531,7 +529,7 @@ class _StatusTelemetriaCard extends StatelessWidget {
                                 (c) =>
                                     '${c.state.url} • Gravando no SD a cada 2 s',
                               )
-                            : 'Conecte-se à rede Wi-Fi "Bioglow_Boia"',
+                            : 'Conecte-se à rede Wi-Fi "AguaViva"',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
@@ -1330,13 +1328,13 @@ class _MenuLateralBioglow extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Água Viva - Monitoramento',
+                          'Água Viva',
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Estação Boia Multiparamétrica',
+                          'Estação Flutuante',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: scheme.onSurfaceVariant),
                         ),
